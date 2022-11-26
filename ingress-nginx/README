@@ -1,0 +1,23 @@
+# ingress-nginx Controller to EKS cluster
+
+## YAML 매니패스트를 사용 
+NLB_useTLS.yaml을 기본적으로 사용하여 배포한다
+service 리소스의 annotion의 ACM 인증서부분을 자신의 인증서로 수정 후 사용한다
+
+## Helm repo을 이용하여 사용
+기본값 설치의 경우
+``` bash
+helm upgrade --install <chart name> ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace
+```
+클래식 로드밸런서 사용 443 포트가 인증서 적용이 되어 있지 않다
+
+NLB 및 TLS 활성화 와와 ACM 적용
+``` bash
+helm upgrade -i ingress-nginx ingress-nginx/ingress-nginx --version 4.1.2 -n ingress-nginx --create-namespace -f values.yaml
+```
+
+주의
+NLB에서 TLS 통신시 터미네이트하면 인그레스 컨트롤러 Pod에서 부터의 백엔드 통신은 http 만
+이용하여 사용하여 야 한다
+그러지 않을 경우 에러가 발생 할 수 있다
