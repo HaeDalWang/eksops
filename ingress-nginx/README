@@ -14,7 +14,7 @@ helm upgrade --install <chart name> ingress-nginx/ingress-nginx \
 
 NLB 및 TLS 활성화 와와 ACM 적용
 ``` bash
-helm upgrade -i ingress-nginx ingress-nginx/ingress-nginx --version 4.1.2 -n ingress-nginx --create-namespace -f values.yaml
+helm upgrade -i ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace -f values.yaml
 ```
 
 주의
