@@ -8,5 +8,5 @@ echo "======= Argo CLI install ========"
 sudo curl --silent --location -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.5.2/argocd-linux-amd64
 sudo chmod +x /usr/local/bin/argocd
 echo ""
-echo "======= expose LoadBalancer ======="
-kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+# echo "======= expose LoadBalancer ======="
+# kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
