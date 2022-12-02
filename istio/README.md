@@ -1,22 +1,33 @@
-오퍼레이터 설치
-```
+## 오퍼레이터 설치
+``` bash
 istioctl operator init 
 ```
-istio 설치 Namespace: istio-system
-Namespace 명을 바꿔야 할 경우 --watchedNamespaces=<namespace> 옵션 추가
 
-오퍼레이터을 이용하여 설치
-```
-kubectl apply -f istio-operator.yaml
+설치 Namespace 변경시(기본값: istio-system)
+``` bash
+istioctl operator init --watchedNamespaces=<namespace>
 ```
 
-istio 인젝션을 Namespace 라벨에 적용
-```
-kubectl label namespace <namespace> istio-injection=enable
-kubectl get ns <namespace> --show-labels
+## 오퍼레이터을 이용하여 설치
+
+Profile 변경값
+- istioingressGateway: Loadbalancer -> NodePort
+
+배포 
+``` bash
+istioctl install -f profile.yaml 
 ```
 
-AWS alb로 노출
+## istioGateway alb(tls) 배포
+배포전 파일 복사후 값 수정
+- cert의 Arn
+``` bash
+kubectl apply -f istio-ingressgateway-alb-ingress.yaml
 ```
-kubectl apply -f ingress-alb.yaml
+
+### kiali addon
 ```
+kubectl apply -f kiali.yaml
+```
+
+
