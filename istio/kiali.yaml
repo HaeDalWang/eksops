@@ -90,13 +90,13 @@ data:
       view_only_mode: false
     external_services:
       prometheus:
-        url: "http://monitoring-prometheus.monitoring.svc.cluster.local:9090"
+        url: "http://kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
       # tracing:
       #   enabled: false
       #   use_grpc: true
       #   url: "http://jaeger-query.monitoring.svc.cluster.local:16686/"
       grafana:
-        url: "http://monitoring-grafana.monitoring.svc.cluster.local:3000"
+        url: "http://monitoring-grafana.monitoring.svc.cluster.local"
       custom_dashboards:
         enabled: true
       istio:

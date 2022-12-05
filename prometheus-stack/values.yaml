@@ -4,11 +4,11 @@
 
 ## Provide a name in place of kube-prometheus-stack for `app:` labels
 ##
-nameOverride: "monitoring"
+nameOverride: ""
 
 ## Override the deployment namespace
 ##
-namespaceOverride: "monitoring"
+namespaceOverride: ""
 
 ## Provide a k8s version to auto dashboard import script example: kubeTargetVersionOverride: 1.16.6
 ##
@@ -20,7 +20,7 @@ kubeVersionOverride: ""
 
 ## Provide a name to substitute for the full names of resources
 ##
-fullnameOverride: ""
+fullnameOverride: "kube-prometheus"
 
 ## Labels to apply to all resources
 ##
@@ -33,33 +33,33 @@ commonLabels: {}
 defaultRules:
   create: true
   rules:
-    alertmanager: true
-    etcd: true
-    configReloaders: true
-    general: true
+    alertmanager: false
+    etcd: false
+    configReloaders: false
+    general: false
     k8s: true
-    kubeApiserverAvailability: true
-    kubeApiserverBurnrate: true
-    kubeApiserverHistogram: true
-    kubeApiserverSlos: true
-    kubeControllerManager: true
-    kubelet: true
-    kubeProxy: true
-    kubePrometheusGeneral: true
-    kubePrometheusNodeRecording: true
+    kubeApiserverAvailability: false
+    kubeApiserverBurnrate: false
+    kubeApiserverHistogram: false
+    kubeApiserverSlos: false
+    kubeControllerManager: false
+    kubelet: false
+    kubeProxy: false
+    kubePrometheusGeneral: false
+    kubePrometheusNodeRecording: false
     kubernetesApps: true
-    kubernetesResources: true
+    kubernetesResources: false
     kubernetesStorage: true
     kubernetesSystem: true
-    kubeSchedulerAlerting: true
-    kubeSchedulerRecording: true
-    kubeStateMetrics: true
-    network: true
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeStateMetrics: false
+    network: false
     node: true
-    nodeExporterAlerting: true
-    nodeExporterRecording: true
-    prometheus: true
-    prometheusOperator: true
+    nodeExporterAlerting: false
+    nodeExporterRecording: false
+    prometheus: false
+    prometheusOperator: false
 
   ## Reduce app namespace alert scope
   appNamespacesTarget: ".*"
@@ -251,13 +251,20 @@ alertmanager:
   #       {{ end }}
 
   ingress:
-    enabled: false
+    enabled: true
 
     # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
-    # ingressClassName: nginx
+    ingressClassName: alb
 
-    annotations: {}
+    annotations: {
+      alb.ingress.kubernetes.io/scheme: "internet-facing",
+      alb.ingress.kubernetes.io/target-type: "ip",
+      alb.ingress.kubernetes.io/listen-ports: "[{\"HTTP\": 80}, {\"HTTPS\": 443}]",
+      alb.ingress.kubernetes.io/backend-protocol: "HTTP",
+      alb.ingress.kubernetes.io/ssl-redirect: "443",
+      alb.ingress.kubernetes.io/group.name: "monitoring-alb-group"
+    }
 
     labels: {}
 
@@ -266,8 +273,8 @@ alertmanager:
 
     ## Hosts must be provided if Ingress is enabled.
     ##
-    hosts: []
-      # - alertmanager.domain.com
+    hosts:
+      - alertmanager.51bsd.click
 
     ## Paths to use for ingress rules - one path should match the alertmanagerSpec.routePrefix
     ##
@@ -277,6 +284,7 @@ alertmanager:
     ## For Kubernetes >= 1.18 you should specify the pathType (determines how Ingress paths should be matched)
     ## See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#better-path-matching-with-path-types
     # pathType: ImplementationSpecific
+    pathType: Prefix
 
     ## TLS configuration for Alertmanager Ingress
     ## Secret must be manually created in the namespace
@@ -411,7 +419,7 @@ alertmanager:
     ## Scrape interval. If not set, the Prometheus default scrape interval is used.
     ##
     interval: ""
-    selfMonitor: true
+    selfMonitor: false
 
     ## proxyUrl: URL of a proxy that should be used for scraping.
     ##
@@ -748,12 +756,17 @@ grafana:
     # IngressClassName for Grafana Ingress.
     # Should be provided if Ingress is enable.
     #
-    ingressClassName: nginx
+    ingressClassName: alb
 
     ## Annotations for Grafana Ingress
     ##
     annotations: {
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      alb.ingress.kubernetes.io/scheme: "internet-facing",
+      alb.ingress.kubernetes.io/target-type: "ip",
+      alb.ingress.kubernetes.io/listen-ports: "[{\"HTTP\": 80}, {\"HTTPS\": 443}]",
+      alb.ingress.kubernetes.io/backend-protocol: "HTTP",
+      alb.ingress.kubernetes.io/ssl-redirect: "443",
+      alb.ingress.kubernetes.io/group.name: "monitoring-alb-group"
     }
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -799,7 +812,7 @@ grafana:
         allowUiUpdates: false
     datasources:
       enabled: true
-      defaultDatasourceEnabled: true
+      defaultDatasourceEnabled: false
 
       uid: prometheus
 
@@ -863,7 +876,7 @@ grafana:
     # If true, a ServiceMonitor CRD is created for a prometheus operator
     # https://github.com/coreos/prometheus-operator
     #
-    enabled: true
+    enabled: false
 
     # Path to use for scraping metrics. Might be different if server.root_url is set
     # in grafana.ini
@@ -895,7 +908,7 @@ grafana:
 ## Component scraping the kube api server
 ##
 kubeApiServer:
-  enabled: true
+  enabled: false
   tlsConfig:
     serverName: kubernetes
     insecureSkipVerify: false
@@ -1115,7 +1128,7 @@ kubelet:
 ## Component scraping the kube controller manager
 ##
 kubeControllerManager:
-  enabled: true
+  enabled: false
 
   ## If your kube controller manager is not deployed as a pod, specify IPs it can be found on
   ##
@@ -1185,7 +1198,7 @@ kubeControllerManager:
 ## Component scraping coreDns. Use either this or kubeDns
 ##
 coreDns:
-  enabled: true
+  enabled: false
   service:
     port: 9153
     targetPort: 9153
@@ -1292,7 +1305,7 @@ kubeDns:
 ## Component scraping etcd
 ##
 kubeEtcd:
-  enabled: true
+  enabled: false
 
   ## If your etcd is not deployed as a pod, specify IPs it can be found on
   ##
@@ -1363,7 +1376,7 @@ kubeEtcd:
 ## Component scraping kube scheduler
 ##
 kubeScheduler:
-  enabled: true
+  enabled: false
 
   ## If your kube scheduler is not deployed as a pod, specify IPs it can be found on
   ##
@@ -1431,7 +1444,7 @@ kubeScheduler:
 ## Component scraping kube proxy
 ##
 kubeProxy:
-  enabled: true
+  enabled: false
 
   ## If your kube proxy is not deployed as a pod, specify IPs it can be found on
   ##
@@ -2214,10 +2227,15 @@ prometheus:
 
     # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
-    ingressClassName: nginx
+    ingressClassName: alb
 
     annotations: {
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      alb.ingress.kubernetes.io/scheme: "internet-facing",
+      alb.ingress.kubernetes.io/target-type: "ip",
+      alb.ingress.kubernetes.io/listen-ports: "[{\"HTTP\": 80}, {\"HTTPS\": 443}]",
+      alb.ingress.kubernetes.io/backend-protocol: "HTTP",
+      alb.ingress.kubernetes.io/ssl-redirect: "443",
+      alb.ingress.kubernetes.io/group.name: "monitoring-alb-group"
     }
     labels: {}
 
@@ -2240,6 +2258,7 @@ prometheus:
     ## For Kubernetes >= 1.18 you should specify the pathType (determines how Ingress paths should be matched)
     ## See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#better-path-matching-with-path-types
     # pathType: ImplementationSpecific
+    pathType: Prefix
 
     ## TLS configuration for Prometheus Ingress
     ## Secret must be manually created in the namespace
@@ -2338,7 +2357,7 @@ prometheus:
   prometheusSpec:
     ## If true, pass --storage.tsdb.max-block-duration=2h to prometheus. This is already done if using Thanos
     ##
-    disableCompaction: false
+    disableCompaction: true
     ## APIServerConfig
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#apiserverconfig
     ##
@@ -2547,6 +2566,7 @@ prometheus:
     ##
     # podMonitorSelector: {}
     ## Example which selects PodMonitors with label "prometheus" set to "somelabel"
+
     podMonitorSelector:
       matchLabels:
         release: istio

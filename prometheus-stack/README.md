@@ -1,18 +1,31 @@
 ## 구성
 변수 파일 수정 사항
-- name,namesapce: monitoring
-- storageclass: gp2, 전부 20Gi
-- ingres-controller 지정: ingress-nginx(NLB), TLS종료
-- hosts: 개인 (51bsd.click)
-    + grfana, prometheus
 
-- Grafana defaultDashboardsTimezone: kst
-- Grafana user/pass: admin/test123
-- serviceMonitorSelector: matchlabels -> release: istio
-- podMonitorSelector: matchlabels -> release: istio
+Share
+- defaultRules-true: System,Storage,k8s,
+- ComponentScraping(cAdvisor): kubelet, kubeStateMetrics
+- nodeExporter: true
+- storageclass: gp2, 전부 20Gi
+- ingressclass: alb, TLS종료(443-redirect)
+    + group.name: "monitoring-alb-group"
+    + hosts: 개인 (51bsd.click)
+    + grfana, prometheus, alertmanager, thanos(x)
+
+Prometheus
+- disableCompaction: true
+- PodmonitorSelector: "release:istio"
+- servicemonitorSelector: "release:istio"
+
+Grafana
+- defaultDashboardsTimezone: kst
+- user/pass: admin/test123
+- sidecar.defaultDatasourceEnabled: false
+- servicemonitor: false
+
+alertmanager
+- serviceMonitor.selfmonitor: false
 
 ## 사용
-
 네임스페이스 생성
 ``` bash
 kubectl create namespace monitoring
