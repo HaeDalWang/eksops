@@ -3,9 +3,6 @@ kind: IstioOperator
 metadata:
   namespace: istio-system
 spec:
-  hub: gcr.io/istio-testing
-  tag: latest
-
   # You may override parts of meshconfig by uncommenting the following lines.
   meshConfig:
     defaultConfig:
@@ -147,10 +144,10 @@ spec:
           wasmEnabled: false
           enabled: true
         stackdriver:
-          enabled: false
-          logging: false
-          monitoring: false
-          topology: false
+          enabled: true
+
+          monitoring: true
+          topology: true
           configOverride: {}
 
     istiodRemote:

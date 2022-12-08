@@ -16,7 +16,7 @@ spec:
   - host: kiali.51bsd.click
     http:
       paths:
-      - path: /kiali
+      - path: /
         pathType: Prefix
         backend:
           service:

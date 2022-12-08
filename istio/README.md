@@ -1,4 +1,4 @@
-## 오퍼레이터 설치
+## 
 ``` bash
 istioctl operator init 
 ```
@@ -8,7 +8,7 @@ istioctl operator init
 istioctl operator init --watchedNamespaces=<namespace>
 ```
 
-## 오퍼레이터을 이용하여 설치
+## 
 
 Profile 변경값
 - istioingressGateway: Loadbalancer -> NodePort
@@ -18,9 +18,8 @@ Profile 변경값
 istioctl install -f profile.yaml 
 ```
 
-## istioGateway alb(tls) 배포
-배포전 파일 복사후 값 수정
-- cert의 Arn
+## istioGateway alb(tls)
+
 ``` bash
 kubectl apply -f istio-ingressgateway-alb-ingress.yaml
 ```

@@ -1,8 +1,10 @@
-## 구성
+# 구성
+
 변수 파일 수정 사항
 
 Share
-- defaultRules-true: System,Storage,k8s,
+
+- defaultRules-true: System,Storage,k8s
 - ComponentScraping(cAdvisor): kubelet, kubeStateMetrics
 - nodeExporter: true
 - storageclass: gp2, 전부 20Gi
@@ -11,33 +13,46 @@ Share
     + hosts: 개인 (51bsd.click)
     + grfana, prometheus, alertmanager, thanos(x)
 
+kube-state-metrics.prometheus.monitoring.interval: 5m
+kube-state-metrics.prometheus.monitoring.scrapetimeout: 1m
+
 Prometheus
+
 - disableCompaction: true
-- PodmonitorSelector: "release:istio"
-- servicemonitorSelector: "release:istio"
+- ruleSelectorNilUsesHelmValues: false
+- podMonitorSelectorNilUsesHelmValues: false
+- serviceMonitorSelectorNilUsesHelmValues: false
+    + 모든 namespace의 메트릭을 수집함으로 프로덕션환경에는 부적합
+    + 운영설치시 matchLabels등으로 지정하여 사용
 
 Grafana
+
 - defaultDashboardsTimezone: kst
 - user/pass: admin/test123
 - sidecar.defaultDatasourceEnabled: false
 - servicemonitor: false
 
 alertmanager
+
 - serviceMonitor.selfmonitor: false
 
 ## 사용
+
 네임스페이스 생성
+
 ``` bash
 kubectl create namespace monitoring
-``` 
+```
 
 레포 추가 및 업데이트
+
 ``` bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 ```
 
 변수 적용 설치/업그레이드 진행
+
 ``` bash
 helm upgrade -i -n monitoring monitoring \
 prometheus-community/kube-prometheus-stack \
@@ -45,6 +60,7 @@ prometheus-community/kube-prometheus-stack \
 ```
 
 ## 제거
+
 ``` bash
 helm uninstall monitoring -n monitoring 
 ```
