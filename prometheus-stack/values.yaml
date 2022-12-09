@@ -853,7 +853,11 @@ grafana:
 
   ## Configure additional grafana datasources (passed through tpl)
   ## ref: http://docs.grafana.org/administration/provisioning/#datasources
-  additionalDataSources: []
+  additionalDataSources:
+  - isDefault: true
+    name: prometheus
+    type: prometheus
+    url: http://kube-prometheus-prometheus:9090
   # - name: prometheus-sample
   #   access: proxy
   #   basicAuth: true
@@ -2514,7 +2518,7 @@ prometheus:
     ## prometheus resource to be created with selectors based on values in the helm deployment,
     ## which will also match the PrometheusRule resources created
     ##
-    ruleSelectorNilUsesHelmValues: false
+    # ruleSelectorNilUsesHelmValues: true
 
     ## PrometheusRules to be selected for target discovery.
     ## If {}, select all PrometheusRules
@@ -2586,7 +2590,7 @@ prometheus:
     ## If {}, select all Probes
     ##
     probeSelector: {}
-    ## Example which selects Probes with label "prometheus" set to "somelabel"
+    # Example which selects Probes with label "prometheus" set to "somelabel"
     # probeSelector:
     #   matchLabels:
     #     prometheus: somelabel
@@ -2598,7 +2602,7 @@ prometheus:
 
     ## How long to retain metrics
     ##
-    retention: 10d
+    retention: 6h
 
     ## Maximum size of metrics
     ##

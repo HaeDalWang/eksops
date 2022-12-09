@@ -4,22 +4,19 @@
 
 Share
 
-- defaultRules-true: System,Storage,k8s
-- ComponentScraping(cAdvisor): kubelet, kubeStateMetrics
-- nodeExporter: true
-- storageclass: gp2, 전부 20Gi
+- defaultRules-true: System, Storage, k8s, node, app
+- ComponentScraping: kubelet, kubeStateMetrics, nodeExporter
+- storageclass: gp3, 전부 20Gi
 - ingressclass: alb, TLS종료(443-redirect)
     + group.name: "monitoring-alb-group"
     + hosts: 개인 (51bsd.click)
     + grfana, prometheus, alertmanager, thanos(x)
 
-kube-state-metrics.prometheus.monitoring.interval: 5m
-kube-state-metrics.prometheus.monitoring.scrapetimeout: 1m
-
 Prometheus
 
 - disableCompaction: true
-- ruleSelectorNilUsesHelmValues: false
+- retention: 6h
+<!-- - ruleSelectorNilUsesHelmValues: false -->
 - podMonitorSelectorNilUsesHelmValues: false
 - serviceMonitorSelectorNilUsesHelmValues: false
     + 모든 namespace의 메트릭을 수집함으로 프로덕션환경에는 부적합
