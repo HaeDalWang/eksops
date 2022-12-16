@@ -3,6 +3,9 @@ kind: IstioOperator
 metadata:
   namespace: istio-system
 spec:
+  hub: docker.io/istio
+  tag: 1.16.0
+
   # You may override parts of meshconfig by uncommenting the following lines.
   meshConfig:
     defaultConfig:
@@ -144,10 +147,10 @@ spec:
           wasmEnabled: false
           enabled: true
         stackdriver:
-          enabled: true
-
-          monitoring: true
-          topology: true
+          enabled: false
+          logging: false
+          monitoring: false
+          topology: false
           configOverride: {}
 
     istiodRemote:

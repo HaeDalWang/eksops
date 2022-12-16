@@ -1,34 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: istio-ingressgateway-alb
+  name: jaeger-ingressgateway-alb
   namespace: istio-system
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    ## alb.ingress.kubernetes.io/certificate-arn: Your ACM ARN
     alb.ingress.kubernetes.io/backend-protocol: HTTP
-    alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
-    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
-    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/group.name: "monitoring-alb-group"
 spec:
   ingressClassName: alb
   rules:
-    - host: istio.51bsd.click
+    - host: jaeger.51bsd.click
       http:
         paths:
         - backend:
             service:
-              name: istio-ingressgateway
-              port:
-                number: 15021
-          path: /healthz/ready
-          pathType: Prefix
-        - backend:
-            service:
-              name: istio-ingressgateway
+              name: tracing
               port:
                 number: 80
           path: /

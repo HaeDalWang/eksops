@@ -9,6 +9,7 @@ spec:
     strategy: anonymous
 
   external_services:
+
     custom_dashboards:
       discovery_auto_threshold: 10
       discovery_enabled: "auto"
@@ -41,6 +42,7 @@ spec:
           retention_period: "12h"
           scrape_interval: "30s"
         url: "http://kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+
     grafana:
       auth:
         ca_file: ""
@@ -69,6 +71,7 @@ spec:
       in_cluster_url: "http://monitoring-grafana.monitoring"
       is_core: false
       url: "http://monitoring-grafana.monitoring.svc.cluster.local"
+
     istio:
       component_status:
         components:
@@ -101,6 +104,7 @@ spec:
       istiod_pod_monitoring_port: 15014
       root_namespace: "istio-system"
       url_service_version: ""
+
     prometheus:
       auth:
         ca_file: ""
@@ -127,6 +131,7 @@ spec:
         retention_period: "7d"
         scrape_interval: "30s"
       url: "http://kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+
     tracing:
       auth:
         ca_file: ""
@@ -137,24 +142,24 @@ spec:
         use_kiali_token: false
         username: ""
       enabled: false
-      in_cluster_url: ""
+      in_cluster_url: "http://tracing.istio-system"
       is_core: false
       namespace_selector: true
       ## default: query_scope is empty
       # query_scope:
       #   mesh_id: "mesh-1"
       #   cluster: "cluster-east"
-      url: "http://jaeger-query.monitoring.svc.cluster.local:16686/"
+      url: "https://jaeger.51bsd.click/"
       use_grpc: true
-      whitelist_istio_system: ["jaeger-query", "istio-ingressgateway"]
+      whitelist_istio_system: ["jaeger", "istio-ingressgateway"]
 
   deployment:
     ingress:
       enabled: true
+      class_name: alb
       override_yaml:
         metadata:
           annotations:
-            kubernetes.io/ingress.class: alb
             alb.ingress.kubernetes.io/scheme: "internet-facing"
             alb.ingress.kubernetes.io/target-type: "ip"
             alb.ingress.kubernetes.io/listen-ports: "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
