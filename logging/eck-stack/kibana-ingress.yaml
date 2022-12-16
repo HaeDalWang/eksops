@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-dashboard-alb
+  namespace: logging
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/group.name: "monitoring-alb-group"
+spec:
+  ingressClassName: alb
+  rules:
+    - host: kibana.51bsd.click
+      http:
+        paths:
+        - backend:
+            service:
+              name: quickstart-kb-http
+              port:
+                number: 5601
+          path: /
+          pathType: Prefix

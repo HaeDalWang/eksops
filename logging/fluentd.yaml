@@ -1,0 +1,259 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluentd
+  namespace: logging
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluentd
+rules:
+- apiGroups: [""]
+  resources:
+  - namespaces
+  - pods
+  verbs: ["get", "list", "watch"]
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluentd
+roleRef:
+  kind: ClusterRole
+  name: fluentd
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: fluentd
+  namespace: logging
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  namespace: logging
+  labels:
+    k8s-app: fluentd-logging
+    version: v1
+    kubernetes.io/cluster-service: "true"
+data:
+  fluent.conf: |
+    #@include systemd.conf
+    @include kubernetes.conf
+    <match **>
+
+      @type elasticsearch
+      @id out_es
+      @log_level info
+
+      include_tag_key true
+      logstash_format false
+      index_name fluentd.${tag}.%Y%m%d
+      Suppress_Type_Name On
+      type_name fluentd
+
+      logstash_prefix "#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX'] || 'fluentd'}"
+
+      #  host "#{ENV['FLUENT_ELASTICSEARCH_HOST']}"
+      #  port "#{ENV['FLUENT_ELASTICSEARCH_PORT']}"
+      #  scheme "#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}"
+      #  ssl_verify "#{ENV['FLUENT_ELASTICSEARCH_SSL_VERIFY'] || 'true'}"
+      #  user "#{ENV['FLUENT_ELASTICSEARCH_USER']}"
+      #  password "#{ENV['FLUENT_ELASTICSEARCH_PASSWORD']}"
+      # reload_connections "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS'] || 'true'}"
+
+      <buffer>
+        flush_thread_count "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_FLUSH_THREAD_COUNT'] || '8'}"
+        flush_interval "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL'] || '5s'}"
+        chunk_limit_size "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE'] || '2M'}"
+        queue_limit_length "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH'] || '32'}"
+        retry_max_interval "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_RETRY_MAX_INTERVAL'] || '30'}"
+        retry_forever true
+      </buffer>
+
+    </match>
+  kubernetes.conf: |
+    <match fluent.**>
+      @type null
+    </match>
+
+    # #Target Logs (ex:nginx)
+    # <source>
+    #   @type tail
+    #   @id in_tail_container_logs
+    #   path "/var/log/containers/nginx*.log"
+    #   pos_file "/var/log/fluentd-nginx.log.pos"
+    #   tag "kubernetes.*"
+    #   read_from_head true
+    #   <parse>
+    #     @type "json"
+    #     time_format "%Y-%m-%dT%H:%M:%S.%NZ"
+    #     time_type string
+    #   </parse>
+    # </source>
+
+    <source>
+     @type tail
+     @id in_tail_container_logs
+     path "/var/log/containers/*.log"
+     pos_file "/var/log/fluentd-{log name}.log.pos"
+     tag "kubernetes.*"
+     read_from_head true
+     <parse>
+       @type "json"
+       time_format "%Y-%m-%dT%H:%M:%S.%NZ"
+       time_type string
+     </parse>
+    </source>
+    
+  #systemd.conf: |
+  #  <source>
+  #    @type systemd
+  #    @id in_systemd_kubelet
+  #    matches [{ "_SYSTEMD_UNIT": "kubelet.service" }]
+  #    <storage>
+  #      @type local
+  #      persistent true
+  #      path /var/log/fluentd-journald-kubelet-cursor.json
+  #    </storage>
+  #    <entry>
+  #      fields_strip_underscores true
+  #    </entry>
+  #    read_from_head true
+  #    tag kubelet
+  #  </source>
+  #  <source>
+  #    @type systemd
+  #    @id in_systemd_docker
+  #    matches [{ "_SYSTEMD_UNIT": "docker.service" }]
+  #    <storage>
+  #      @type local
+  #      persistent true
+  #      path /var/log/fluentd-journald-docker-cursor.json
+  #    </storage>
+  #    <entry>
+  #      fields_strip_underscores true
+  #    </entry>
+  #    read_from_head true
+  #    tag docker.systemd
+  #  </source>
+  #  <source>
+  #    @type systemd
+  #    @id in_systemd_bootkube
+  #    matches [{ "_SYSTEMD_UNIT": "bootkube.service" }]
+  #    <storage>
+  #      @type local
+  #      persistent true
+  #      path /var/log/fluentd-journald-bootkube-cursor.json
+  #    </storage>
+  #    <entry>
+  #      fields_strip_underscores true
+  #    </entry>
+  #    read_from_head true
+  #    tag bootkube
+  #  </source>
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd
+  namespace: logging
+  labels:
+    k8s-app: fluentd-logging
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      k8s-app: fluentd-logging
+      version: v1
+  template:
+    metadata:
+      labels:
+        k8s-app: fluentd-logging
+        version: v1
+    spec:
+      serviceAccount: fluentd
+      serviceAccountName: fluentd
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      containers:
+      - name: fluentd
+        image: fluent/fluentd-kubernetes-daemonset:v1-debian-elasticsearch
+        env:
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name:  FLUENT_ELASTICSEARCH_HOST
+            value: "quickstart-es-http"
+          - name:  FLUENT_ELASTICSEARCH_PORT
+            value: "9200"
+          - name: FLUENT_ELASTICSEARCH_SCHEME
+            value: "https"
+          # Option to configure elasticsearch plugin with self signed certs
+          # ================================================================
+          - name: FLUENT_ELASTICSEARCH_SSL_VERIFY
+            value: "false"
+          # Option to configure elasticsearch plugin with tls
+          # ================================================================
+          - name: FLUENT_ELASTICSEARCH_SSL_VERSION
+            value: "TLSv1_2"
+          # X-Pack Authentication
+          # =====================
+          - name: FLUENT_ELASTICSEARCH_USER
+            value: "elastic"
+          - name: FLUENT_ELASTICSEARCH_PASSWORD
+          #   value: "htt4iG618u2PIc3n94h4a6NF"
+            valueFrom:
+              secretKeyRef:
+                name: quickstart-es-elastic-user
+                key: elastic
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+
+        - name: test2
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+
+        - name: test
+          mountPath: /var/log/containers
+          readOnly: true  
+
+        # - name: dockercontainerlogdirectory
+        #   mountPath: /var/log/pods
+        #   readOnly: true
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+
+      - name: test2
+        hostPath:
+          path: /var/lib/docker/containers
+
+      - name: test
+        hostPath:
+          path: /var/log/containers
+      # - name: dockercontainerlogdirectory
+      #   hostPath:
+      #     path: /var/log/pods
+      - name: config-source
+        configMap:
+          name: fluentd-config  
