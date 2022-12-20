@@ -60,4 +60,5 @@ prometheus-community/kube-prometheus-stack \
 
 ``` bash
 helm uninstall monitoring -n monitoring 
+kubectl delete ns monitoring --grace-period 0 --force 
 ```

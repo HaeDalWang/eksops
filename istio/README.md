@@ -49,3 +49,12 @@ kubectl apply -f istio-ingressgateway-alb-ingress.yaml
 ```
 
 
+## CleanUp
+kubectl delete -f prometheus-operator.yaml
+kubectl delete -f istio-ingressgateway-alb-ingress.yaml 
+istioctl uninstall -f profile.yaml
+kubectl delete mutatingwebhookconfigurations 
+istioctl operator remove
+istioctl uninstall -y --purge
+kubectl delete ns istio-system --grace-period=0 --force
+kubectl delete ns istio-operator --grace-period=0 --force
