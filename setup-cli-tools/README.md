@@ -36,10 +36,16 @@ chmod +x yq
 sudo mv yq /usr/local/bin/
 ```
 
-### Bash completion
-bashrc
-# source <(kubectl completion bash)
-# source <(helm completion bash)
-# source <(eksctl completion bash)
+## Terraform
+sudo yum install -y yum-utils shadow-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum -y install terraform
+terraform -install-autocomplete
+
+## Bash completion
+
+source <(kubectl completion bash)
+source <(helm completion bash)
+source <(eksctl completion bash)
 # source <(istioctl completion bash)
-source /etc/profile.d/bash_completion.sh 
+<!-- source /etc/profile.d/bash_completion.sh  -->
